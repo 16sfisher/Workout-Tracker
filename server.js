@@ -20,8 +20,8 @@ mongoose.connect(MONGODB_URI, {
 });
 
 //Routes
-require("./public/routes/html-routes")(app);
-require("./public/routes/api-routes")(app);
+require("./routes/html-routes")(app);
+require("./routes/api-routes")(app);
 
 
 //Starts server listening on PORT
