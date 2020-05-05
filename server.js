@@ -1,56 +1,31 @@
-const express = require("express");
-var path = require("path");
-
-const mongoose = require("mongoose");
-const db = require("./models/workout");
+const mongoose = require('mongoose');
+const express = require('express');
+const morgan = require('morgan');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.PORT || 8080;
 
-app.use(express.static("public"));
+app.use(morgan('dev'));
+
+// Sets up the Express app to handle data parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.static('public'));
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/Workout", { useNewUrlParser: true });
 
-app.get("/", function(req, res) {
-    res.sendFile(path.join(__dirname + "/public/index.html"));
+//MONGODB
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/workout";
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useFindAndModify: false,
 });
+//Routes
+require("./routes/html-routes")(app);
+require("./routes/api-routes")(app);
 
-app.get("/exercise", function(req, res) {
-    res.sendFile(path.join(__dirname + "/public/exercise.html"));
-});
 
-app.get("/stats", function(req, res) {
-    res.sendFile(path.join(__dirname + "/public/stats.html"));
-});
-
-app.get("/api/workouts", function(req, res) {
-    db.find({}, (err, results) => {
-        //console.log(JSON.stringify(results));
-        res.json(results);
-    });
-});
-
-app.get("/api/workouts/range", function(req, res) {
-    db.find({}, (err, results) => {res.json(results)});
-});
-
-app.post("/api/workouts", function(req, res) {
-    db.collection.insertOne({day: Date.now(), exercises: []})
-    .then(data => {res.json(data)})
-    .catch(err => {
-        console.error(err);
-        process.exit(1);
-    });
-});
-
-app.put("/api/workouts/:id", function(req, res) {
-    console.log(req.body);
-    db.findOne({_id: req.params.id}, (err, results) => {console.log(results)})
-    db.updateOne({_id: req.params.id}, { $push: {exercises: req.body} }, (err, result) => {res.json(result)});
-});
-
-app.listen(PORT, function() {
-    console.log("App running at localhost:" + PORT);
+//Starts server listening on PORT
+app.listen(PORT, function(){
+    console.log(`App listening on Port ${PORT}!`);
 });
